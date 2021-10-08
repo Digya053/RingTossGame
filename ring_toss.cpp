@@ -16,18 +16,25 @@ static int success_count;
 static int animationPeriod; // Time interval between frames
 static int isAnimate;
 
+
 static float t; // Time parameter.
 static int h; // Horizontal component of initial velocity.
 static float v; // Vertical component of initial velocity.
 static float g;  // Gravitational accelaration.
 string h_string;
 
+static float x_t;
+static float y_t;
+
 char canvas_Name[] = "Ring Toss"; // Name at the top of canvas
 char message[] = "Enter Toss Velocity and then GO to Toss";
 char velocity[] = "VELOCITY";
 char go[] = "GO";
+char game_over[] = "GAME OVER";
 
 static char theStringBuffer[10];
+
+void animate(int value);
 
 
 // Sets width and height of canvas to 480 by 480.
@@ -40,9 +47,10 @@ void init() {
 	animationPeriod = 50;
 	t = 0.0;
 	h = 0;
-	v = 0.00001;
-	g = -0.000016;
+	v = 10;
+	g = 32;
 	isAnimate = 0;
+	
 }
 
 void view_setup(void) {
@@ -68,6 +76,14 @@ void view_setup(void) {
 	glMatrixMode(GL_MODELVIEW);
 }
 
+// Routine to draw a bitmap character string.
+void writeBitmapString(void *font, char *string) {
+	char *c;
+	for (c = string; *c != '\0'; c++) {
+		glutBitmapCharacter(font, *c);
+	}
+}
+
 void draw_single_post_stack(float x, float y, float z, GLdouble cube_size) {
 	glPushMatrix();
 	glTranslatef(x, y, z);
@@ -83,6 +99,15 @@ void draw_post(float x, float y, float z, GLdouble cube_size) {
 	draw_single_post_stack(x, y + 30, z, cube_size);
 }
 
+void display_game_over(float x, float y, float z) {
+	glPushMatrix();
+	glRasterPos3f(x, y, z);
+	writeBitmapString(GLUT_BITMAP_HELVETICA_12, game_over);
+	glPopMatrix();
+}
+
+
+
 void draw_ring(float x, float y, float z, GLdouble inner_radius, GLdouble torus_width) {
 	GLdouble outer_radius = inner_radius + (torus_width / 2.0);
 	GLint nsides = 25;
@@ -93,27 +118,21 @@ void draw_ring(float x, float y, float z, GLdouble inner_radius, GLdouble torus_
 	else if (success_count == 2) {
 		glColor3f(0.0, 1.0, 1.0);
 	}
-	else {
-		glColor3f(1.0, 1.0, 0.0);
-	}
+	
 	glPushMatrix();
 	glTranslatef(x, y, z);
-	cout << "x is: " << int(h*t) << endl;
-	cout << "y is: " <<  int(v * t - (g / 2.0)*t*t) << endl;
-	if (int(v * t - (g / 2.0)*t*t) == -210) {
-		//cout << isAnimate << endl;
-		if (isAnimate) isAnimate = 0;
-		//cout << isAnimate << endl;
+	x_t = h * t;
+	y_t = v * t - (g / 2.0)*t*t;
+	cout << "x is: " << int(x_t) << endl;
+	cout << "y is: " <<  int(y_t) << endl;
+	if (int(y_t) == -210) {
+		x_t = 0.0;
 	}
-	if (int(v * t - (g / 2.0)*t*t) < -210) {
-		//cout << isAnimate << endl;
+	if (int(y_t) <= -270) {
 		if (isAnimate) isAnimate = 0;
-		//cout << isAnimate << endl;
+		glutTimerFunc(1000, animate, 2);
 	}
-	if (int(h*t) > 550 ) {
-		if (isAnimate) isAnimate = 0;
-	}
-	glTranslatef(h*t, v*t - (g / 2.0)*t*t, 0.0);
+	glTranslatef(x_t, y_t, 0.0);
 	glutWireTorus(inner_radius, outer_radius, nsides, rings);
 	glPopMatrix();
 }
@@ -129,13 +148,7 @@ void integerToString(char * destStr, int precision, int val)
 
 
 
-// Routine to draw a bitmap character string.
-void writeBitmapString(void *font, char *string) {
-	char *c;
-	for (c = string; *c != '\0'; c++) {
-		glutBitmapCharacter(font, *c);
-	}
-}
+
 
 void print_message(float x, float y, float z) {
 	glPushMatrix();
@@ -143,6 +156,8 @@ void print_message(float x, float y, float z) {
 	writeBitmapString(GLUT_BITMAP_HELVETICA_12, message);
 	glPopMatrix();
 }
+
+
 
 void draw_velocity_box(float x, float y, float z) {
 	glPushMatrix();
@@ -177,10 +192,20 @@ void draw_start_box(float x, float y, float z) {
 
 // Timer function.
 void animate(int value) {
-	if (isAnimate) {
-		t += 1.0;
+	switch (value) {
+
+	case 1:
+		if (isAnimate) {
+			t += 1.0;
+			glutPostRedisplay();
+			glutTimerFunc(animationPeriod, animate, 1);
+		}
+		break;
+	case 2: 
+		success_count += 1;
+		t = 0.0;
 		glutPostRedisplay();
-		glutTimerFunc(animationPeriod, animate, 1);
+		break;
 	}
 	
 }
@@ -232,6 +257,7 @@ void mouse_handler(int button, int state, int x, int y) {
 	}
 }
 
+
 void display_func() {
 	glLoadIdentity();
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -241,7 +267,14 @@ void display_func() {
 	draw_velocity_box(-125,0,-50);
 	draw_start_box(-95, -5, -50);
 	draw_post(210, -275, -50, 10);
-	draw_ring(-60, 200, -50, 20, 15);
+	if (success_count < 3) {
+		glColor3f(1.0, 1.0, 0.0);
+		draw_ring(-60, 200, -50, 20, 15);
+	}
+	else {
+		glColor3f(1.0, 0.0, 0.0);
+		display_game_over(-60, 200, -50);
+	}
 	glutSwapBuffers();
 	glFlush();
 }
