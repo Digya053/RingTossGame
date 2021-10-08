@@ -14,6 +14,7 @@ static int view_state; // Flag to keep track of the type of view volume currentl
 
 static int success_count;
 static int animationPeriod; // Time interval between frames
+static int isAnimate;
 
 static float t; // Time parameter.
 static int h; // Horizontal component of initial velocity.
@@ -38,9 +39,10 @@ void init() {
 	success_count = 0;
 	animationPeriod = 50;
 	t = 0.0;
-	h = 0000;
-	v = 4;
-	g = 0.2;
+	h = 0;
+	v = 0.00001;
+	g = -0.000016;
+	isAnimate = 0;
 }
 
 void view_setup(void) {
@@ -95,7 +97,22 @@ void draw_ring(float x, float y, float z, GLdouble inner_radius, GLdouble torus_
 		glColor3f(1.0, 1.0, 0.0);
 	}
 	glPushMatrix();
-	glTranslatef(-60, 200, -50);
+	glTranslatef(x, y, z);
+	cout << "x is: " << int(h*t) << endl;
+	cout << "y is: " <<  int(v * t - (g / 2.0)*t*t) << endl;
+	if (int(v * t - (g / 2.0)*t*t) == -210) {
+		//cout << isAnimate << endl;
+		if (isAnimate) isAnimate = 0;
+		//cout << isAnimate << endl;
+	}
+	if (int(v * t - (g / 2.0)*t*t) < -210) {
+		//cout << isAnimate << endl;
+		if (isAnimate) isAnimate = 0;
+		//cout << isAnimate << endl;
+	}
+	if (int(h*t) > 550 ) {
+		if (isAnimate) isAnimate = 0;
+	}
 	glTranslatef(h*t, v*t - (g / 2.0)*t*t, 0.0);
 	glutWireTorus(inner_radius, outer_radius, nsides, rings);
 	glPopMatrix();
@@ -160,9 +177,12 @@ void draw_start_box(float x, float y, float z) {
 
 // Timer function.
 void animate(int value) {
-	t += 1.0;
-	glutPostRedisplay();
-	glutTimerFunc(animationPeriod, animate, 1);
+	if (isAnimate) {
+		t += 1.0;
+		glutPostRedisplay();
+		glutTimerFunc(animationPeriod, animate, 1);
+	}
+	
 }
 
 void keyboard_handler(unsigned char key, int x, int y) {
@@ -172,6 +192,15 @@ void keyboard_handler(unsigned char key, int x, int y) {
 		view_state = abs(view_state - 1);
 		view_setup();
 		glutPostRedisplay();
+		break;
+	case 'r':
+
+		isAnimate = 0;
+
+		t = 0.0;
+
+		glutPostRedisplay();
+
 		break;
 	default:
 		break;
@@ -192,9 +221,8 @@ void mouse_handler(int button, int state, int x, int y) {
 	if (button == GLUT_LEFT_BUTTON, state == GLUT_UP)
 	{
 		if (x > 83 and x < 110 and y > 260 and y < 280) {
-			t += 1.0;
-			glutPostRedisplay();
-			glutTimerFunc(animationPeriod, animate, 1);
+			isAnimate = 1;
+			animate(1);
 		}
 
 		if (x >= 31 and x <= 63 and y >= 246 and y <= 264) {
@@ -203,10 +231,6 @@ void mouse_handler(int button, int state, int x, int y) {
 		}
 	}
 }
-
-
-
-
 
 void display_func() {
 	glLoadIdentity();
