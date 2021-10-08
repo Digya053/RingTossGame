@@ -8,6 +8,9 @@
 
 using namespace std;
 
+// Globals variables
+static int view_state; // Flag to keep track of the type of view volume currently in display 
+						// [Ortho view = 1, Perspective = 0]
 
 static int success_count;
 static int animationPeriod; // Time interval between frames
@@ -38,6 +41,29 @@ void init() {
 	h = 0000;
 	v = 4;
 	g = 0.2;
+}
+
+void view_setup(void) {
+	/*
+	This function sets up the view volume.
+	*/
+
+	// Set the current matrix mode to projection
+	glMatrixMode(GL_PROJECTION);
+	// Load identity matrix
+	glLoadIdentity();
+	// Sets view volume to perspective if view state is 0. The aspect ratio of perspective projection
+	//is computed as 116.
+	if (view_state == 0)
+	{
+		gluPerspective(159.4, canvas_Width / canvas_Height, 1.0, 150.0);
+	}
+	// Sets view volume to orthographic if view state is 1. 
+	else {
+		glOrtho(- 275, 275, -275, 275, 1, 150);
+	}
+	// Sets the current matrix mode to modelview to apply the subsequent operations on modelview mode.
+	glMatrixMode(GL_MODELVIEW);
 }
 
 void draw_single_post_stack(float x, float y, float z, GLdouble cube_size) {
@@ -110,9 +136,6 @@ void draw_velocity_box(float x, float y, float z) {
 	glVertex3f(x + 45, y+30, z);
 	glVertex3f(x, y+30, z);
 	glEnd();
-	//cout << "inside draw" << endl;
-	//cout << h << endl;
-	//cout << theStringBuffer << endl;
 	integerToString(theStringBuffer, 4, h);
 	glRasterPos3f(x + 5, y +10, z);
 	writeBitmapString(GLUT_BITMAP_HELVETICA_18, theStringBuffer);
@@ -138,28 +161,34 @@ void draw_start_box(float x, float y, float z) {
 // Timer function.
 void animate(int value) {
 	t += 1.0;
-	//h += 1;
 	glutPostRedisplay();
 	glutTimerFunc(animationPeriod, animate, 1);
 }
 
 void keyboard_handler(unsigned char key, int x, int y) {
-	int key_in = int(key) - 48;
-	cout << x << endl;
-	if (key_in >= 0 and key_in <= 9) {
-		h_string += key;
-		//cout << h_string << endl;
-		h = stoi(h_string);
-		//cout << "h is" << endl;
-		//cout << h << endl;
+	switch (key)
+	{
+	case 'V': case 'v':
+		view_state = abs(view_state - 1);
+		view_setup();
 		glutPostRedisplay();
+		break;
+	default:
+		break;
+	}
+	if (x >= 31 and x <= 63 and y >= 246 and y <= 264) {
+		int key_in = int(key) - 48;
+		if (key_in >= 0 and key_in <= 9) {
+			h_string += key;
+			if (h_string.length() <= 4) {
+				h = stoi(h_string);
+				glutPostRedisplay();
+			}
+		}
 	}
 }
 
 void mouse_handler(int button, int state, int x, int y) {
-	cout << y << endl; 
-	// 31, 43, 55, 63
-	// 264 and 246, 
 	if (button == GLUT_LEFT_BUTTON, state == GLUT_UP)
 	{
 		if (x > 83 and x < 110 and y > 260 and y < 280) {
@@ -172,8 +201,6 @@ void mouse_handler(int button, int state, int x, int y) {
 			h_string = "";
 			glutKeyboardFunc(keyboard_handler);
 		}
-
-		//glutKeyboardFunc(keyboard_handler);
 	}
 }
 
