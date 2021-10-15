@@ -1,3 +1,14 @@
+/*CS 445/545 Prog 3 for Digya Acharya*/
+/***********************************************************************************************
+ringtossgame.cpp
+EXTRA CREDIT: All three extra credit features have been implemented, i.e, keeping SCORE on the upper left corner of the screen and incrementing it
+by 25 if the ring lands on the post, displaying message of success on a successful ring toss and message of encouragement if it's a near miss and lastly, 
+viewing the objects from above the post triggered by the press of 'T'.
+Apart from this, I have also displayed an extra message to encourage the player to try again on an unsuccessful ring toss.
+
+Software Architecture Statement: This program implements a ring toss game, allowing users to enter the velocity for tossing a ring into the peg.
+************************************************************************************************/
+
 #define _CRT_SECURE_NO_WARNINGS
 #include "pch.h"
 #include <iostream>
@@ -6,35 +17,35 @@
 #include <GL/freeglut.h>
 #include "OpenGL445Setup.h"
 
-using namespace std;
-
 // Globals variables
+static float x_pos;
+static float y_pos;
+
 static int view_state; // Flag to keep track of the type of view volume currently in display 
 						// [Ortho view = 1, Perspective = 0]
 
-static int play_count;
 static int animationPeriod; // Time interval between frames
+static int delayPeriod;
 static int isAnimate;
 
 static float t; // Time parameter.
 static int h; // Horizontal component of initial velocity.
-static float v; // Vertical component of initial velocity.
-static float g;  // Gravitational accelaration.
-string h_string;
 static int score_val;
+static int prev_score;
 
-static float x_pos;
-static float y_pos;
+
+static int play_count;
+static int prev_play_count;
 
 static int win;
 static int near_win;
+static int not_win;
 
+static bool toggle;
 static float eyeY;
-static float centerY;
-static float centerZ;
-static float eyeX = 0;
-static float eyeZ = 0;
-static float centerX = 0;
+
+std::string h_string;
+static char theStringBuffer[10];
 
 char canvas_Name[] = "Ring Toss"; // Name at the top of canvas
 char message[] = "Enter Toss Velocity and then GO to Toss";
@@ -44,9 +55,7 @@ char game_over[] = "GAME OVER";
 char score[] = "SCORE:";
 char success_msg[] = "CONGRATS! You have hit the POST";
 char encouragement_msg[] = "VERY NEAR MISS! YOU CAN DO IT!!!";
-
-
-static char theStringBuffer[10];
+char try_again_msg[] = "The RING didn't hit the POST. Please try again!!!";
 
 void animate(int value);
 
@@ -56,12 +65,11 @@ void animate(int value);
 
 void init() {
 	glClearColor(0.0, 0.0, 0.0, 1.0);
-	play_count = 0;
+	play_count = 1;
 	animationPeriod = 50;
+	delayPeriod = 1000;
 	t = 0.0;
 	h = 0;
-	v = 10;
-	g = 32;
 	isAnimate = 0;
 	view_state = 1;
 
@@ -69,11 +77,9 @@ void init() {
 	y_pos = 0;
 
 	score_val = 0;
-	win = 0;
-	near_win = 0;
 	eyeY = 0;
-	centerY = 0;
-	centerZ = -50;
+
+	toggle = false;
 
 }
 
@@ -117,13 +123,15 @@ void draw_ring(float x, float y, float z, GLdouble inner_radius, GLdouble torus_
 	GLdouble outer_radius = inner_radius + (torus_width / 2.0);
 	GLint nsides = 25;
 	GLint rings = 25;
-	if (play_count == 1) {
+	
+	
+	if (play_count == 2) {
 		glColor3f(1.0, 0.647, 0.0);
 	}
-	else if (play_count == 2) {
+	else if (play_count == 3) {
 		glColor3f(0.0, 1.0, 1.0);
 	}
-	else {
+	else if (play_count == 1){
 		glColor3f(1.0, 1.0, 0.0);
 	}
 
@@ -213,16 +221,28 @@ void display_encouragement_msg(float x, float y, float z) {
 	glPopMatrix();
 }
 
-void check_win_position(int x) {
+void display_tryagain_msg(float x, float y, float z) {
+	glColor3f(1.0, 1.0, 1.0);
+	glPushMatrix();
+	glRasterPos3f(x, y, z);
+	writeBitmapString(GLUT_BITMAP_HELVETICA_12, try_again_msg);
+	glPopMatrix();
+}
+
+void check_win_position(int x, int y) {
 	win = 0;
 	near_win = 0;
-	if (x >= 268 and x <= 275) {
+	not_win = 0;
+	if (x >= 268 and x <= 275 and y == -470) {
 		win = 1;
 	}
-	else if (x >= 238 and x <= 300 and !win) {
-			near_win = 1;
-		}
+	else if (x >= 228 and x <= 310 and y == -470 and !win) {
+		near_win = 1;
 	}
+	else if (y == -470 and !win and !near_win) {
+		not_win = 1;
+	}
+}
 
 void view_setup(void) {
 	/*
@@ -239,37 +259,36 @@ void view_setup(void) {
 		glOrtho(-275, 275, -275, 275, 1, 150);
 	}
 	// Sets the current matrix mode to modelview to apply the subsequent operations on modelview mode.
-	gluLookAt(eyeX, eyeY, 1, centerX, centerY, -50.0, 0.0, 1.0, 0.0);
+	gluLookAt(0.0, eyeY, 0.0, 0.0, 0.0, -50.0, 0.0, 1.0, 0.0);
 	glMatrixMode(GL_MODELVIEW);
 }
 
 // Timer function.
-void animate(int value) {
+void timer_func(int value) {
 	switch (value) {
 
 	case 1:
 		if (isAnimate == 1) {
 			t += 1;
 			glutPostRedisplay();
-			glutTimerFunc(animationPeriod, animate, 1);
-			//glutTimerFunc(2000, animate, 1);
+			glutTimerFunc(animationPeriod, timer_func, 1);
 
 		}
 		break;
 	case 2:
-		play_count += 1;
-		if (play_count <= 3 and win) {
-			score_val += 25;
+		if (prev_play_count > 0) {
+			play_count = prev_play_count;
+			if (win and score_val == prev_score) {
+				score_val += 25;
+			}
+		}
+		else {
+			play_count += 1;
+			if (win and prev_play_count <=0) {
+				score_val += 25;
+			}
 		}
 		t = 0.0;
-		//win = 0;
-		//near_win = 0;
-		//glutPostRedisplay();
-		glutTimerFunc(1000, animate, 3);
-		//win = 0;
-		//near_win = 0;
-		break;
-	case 3:
 		glutPostRedisplay();
 		break;
 	}
@@ -284,35 +303,47 @@ void display_typed_velocity(unsigned char key) {
 			h = stoi(h_string);
 			glutPostRedisplay();
 		}
+		else {
+			h_string = "";
+		}
 	}
 }
 
 void keyboard_handler(unsigned char key, int x, int y) {
+	
 	switch (key)
 	{
 	case 'V': case 'v':
 		view_state = abs(view_state - 1);
+		prev_play_count = play_count;
+		prev_score = score_val;
 		view_setup();
 		glutPostRedisplay();
+		if (prev_play_count < 4) {
+			prev_play_count += 1;
+			if (win and prev_score < score_val) {
+				prev_score += 25;
+			}
+		}
 		break;
 	case 'T': case 't':
+		prev_play_count = play_count;
+		prev_score = score_val;
 		if (eyeY == 0) {
 			eyeY = -275;
-			centerZ = -50;
 
 		}
 		else {
 			eyeY = 0;
-			centerZ = -50;
 		}
-
 		view_setup();
 		glutPostRedisplay();
-		break;
-	case 'r':
-		isAnimate = 0;
-		t = 0.0;
-		glutPostRedisplay();
+		if (prev_play_count < 4) {
+			prev_play_count += 1;
+			if (win and prev_score < score_val) {
+				prev_score += 25;
+			}
+		}
 		break;
 	default:
 		break;
@@ -332,8 +363,7 @@ void keyboard_handler(unsigned char key, int x, int y) {
 
 void enable_go_button() {
 	isAnimate = 1;
-	//glutPostRedisplay();
-	glutTimerFunc(animationPeriod, animate, 1);
+	glutTimerFunc(animationPeriod, timer_func, 1);
 }
 
 void enable_velocity_type() {
@@ -342,13 +372,10 @@ void enable_velocity_type() {
 }
 
 void mouse_handler(int button, int state, int x, int y) {
-	cout << x << endl;
-	cout << y << endl;
-	if (button == GLUT_LEFT_BUTTON, state == GLUT_UP)
-	{
+	if (button == GLUT_LEFT, state == GLUT_UP) {
 		if (view_state == 1) {
-			if (x >= 95 and x <= 119 and y >= 250 and y <= 272) {
-				enable_go_button();				
+			if (x >= 95 and x <= 119 and y >= 250 and y <= 272 and h != 0) {
+				enable_go_button();
 			}
 
 			if (x >= 15 and x <= 87 and y >= 250 and y <= 274) {
@@ -356,7 +383,7 @@ void mouse_handler(int button, int state, int x, int y) {
 			}
 		}
 		else if (view_state == 0) {
-			if (x >= 185 and x <= 195 and y >= 262 and y <= 270) {
+			if (x >= 185 and x <= 195 and y >= 262 and y <= 270 and h != 0) {
 				enable_go_button();
 			}
 
@@ -368,8 +395,10 @@ void mouse_handler(int button, int state, int x, int y) {
 }
 
 void calc_gravity_based_ring_pos() {
-	y_pos = v * t - (g / 2.0)*t*t;
-	if (200 + y_pos >= -210) {
+	int v = 10;
+	int g = -32;
+	y_pos = v * t + (g / 2.0)*t*t;
+	if (200 + y_pos > -210) {
 		x_pos = h * t;
 
 	};
@@ -377,7 +406,7 @@ void calc_gravity_based_ring_pos() {
 	if (200 + y_pos <= -270) {
 		y_pos = -470;
 		isAnimate = 0;
-		glutTimerFunc(1000, animate, 2);
+		glutTimerFunc(delayPeriod, timer_func, 2);
 	}
 }
 void display_func() {
@@ -390,21 +419,22 @@ void display_func() {
 	draw_go_box(-90, 0, -50);
 	draw_post(210, -275, -50, 10);
 	display_score(-130, 130, -50);
-	if (play_count < 3) {
-		//glColor3f(1.0, 1.0, 0.0);
+	if (play_count < 4) {
 		calc_gravity_based_ring_pos();
 		draw_ring(-60 + x_pos, 200 + y_pos, -50, 20, 15);
-		check_win_position(x_pos);
+		check_win_position(x_pos, y_pos);
 	}
 	else {
-		//
 		display_game_over(-60, 200, -50);
 	}
 	if (win) {
 		display_success_msg(-270, -270, -50);
 	}
-	if (near_win) {
+	else if (near_win) {
 		display_encouragement_msg(-270, -270, -50);
+	}
+	else if (not_win) {
+		display_tryagain_msg(-270, -270, -50);
 	}
 	glutSwapBuffers();
 	glFlush();
