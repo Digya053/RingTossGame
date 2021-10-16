@@ -297,7 +297,8 @@ void draw_go_box(float x, float y, float z) {
 
 void display_score(float x, float y, float z) {
 	/*
-	This function writes 'SCORE' on the upper left corner, convertes the integer value of score to character and displays the score using glutStrokeCharacter.
+	This function writes 'SCORE' on the upper left corner, convertes the integer value of score to character and displays the score using
+	glutStrokeCharacter.
 
 	Parameters:
 	----------
@@ -468,8 +469,8 @@ void view_setup(void) {
 
 void timer_func(int value) {
 	/*
-	This function is a glut timer callback function which displays each new frame 55 ms from start to enable ring movement, displays new score value and 
-	different colored ring at the start position based on the play_count and score_val.
+	This function is a glut timer callback function which displays each new frame 55 ms from start to enable ring movement, 
+	displays new score value and different colored ring at the start position based on the play_count and score_val.
 	Parameters:
 	-----------
 		value: Integer
@@ -622,9 +623,8 @@ void enable_velocity_type(void) {
 
 void mouse_handler(int button, int state, int x, int y) {
 	/*
-	This function is a glut mouse callback handler which activates the ring movement after clicking go button and enables typing in the velocity box
-	within certain mouse pointer coordinates.
-	Default values of button and state has been used in this function.
+	This function is a glut mouse callback handler which activates the ring movement after clicking go button and enables typing
+	in the velocity box within certain mouse pointer coordinates. Default values of button and state has been used in this function.
 	Parameters:
 	-----------
 		button: Integer
@@ -660,8 +660,8 @@ void mouse_handler(int button, int state, int x, int y) {
 
 void calc_gravity_based_ring_pos(void) {
 	/*
-	This function calculates the x_pos and y_pos value based on gravitational equation. This also make ring fall straight down when y = -210
-	and pauses the ring for 1000 ms when y =-270.
+	This function calculates the x_pos and y_pos value based on gravitational equation. This also make ring fall straight down
+	when y = -210 and pauses the ring for 1000 ms when y =-270.
 	*/
 	float v = 10;
 	float g = -32;
@@ -679,9 +679,10 @@ void calc_gravity_based_ring_pos(void) {
 }
 void display_func(void) {
 	/*
-	This is a glut display callback handler which is called whenever a window needs to be displayed or redisplayed. It clears the canvas screen
-	and reloads all the objects of the scene when called. This function also displays different messages on the canvas based on the game status (win, near_win,
-	not_win), enable ring movement, displays new ring after the game ends until game number is 4 then, displays game over message. 
+	This is a glut display callback handler which is called whenever a window needs to be displayed or redisplayed. It clears the 
+	canvas screen and reloads all the objects of the scene when called. This function also displays different messages on the canvas 
+	based on the game status (win, near_win, not_win), enable ring movement, displays new ring after the game ends until game number
+	is 4 then, displays game over message. 
 	*/
 	glLoadIdentity();
 	glClear(GL_COLOR_BUFFER_BIT);
