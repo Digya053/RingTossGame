@@ -2,32 +2,28 @@
 /***********************************************************************************************
 ringtossgame.cpp
 EXTRA CREDIT: All three extra credit features have been implemented, i.e, keeping SCORE on the upper left corner of the screen and incrementing it
-by 25 if the ring lands on the post, displaying message of success on a successful ring toss and message of encouragement if it's a near miss and lastly, 
+by 25 if the ring lands on the post, displaying message of success on a successful ring toss and message of encouragement if it's a near miss and lastly,
 viewing the objects from above the post triggered by the press of 'T'.
 Apart from this, I have also displayed an extra message to encourage the player to try again on an unsuccessful ring toss.
-
-Software Architecture Statement: This program implements a ring toss game that allows the  users to enter the velocity for tossing a ring into the peg by 
+Software Architecture Statement: This program implements a ring toss game that allows the  users to enter the velocity for tossing a ring into the peg by
 registering four callback functions: display_func() which is a display callback handler, timer_func() which is a timer callback handler, keyboard_handler()
-which is a keyboard callback handler and mouse_handler() which is a glut mouse callback handler. The program uses double buffered display mode. 
-After drawing all objects using the display_func(), the coordinates for enabling press of 'GO' button and typing in the velocity box has been found using the 
-mouse_handler(). Then, keyboard_handler() has been used to get the value of horizontal velocity typed in the obtained mouse coordinate position. The key 
-strings typed has been stored in 'hstring' global string variable, converted to global integer 'h' to use in gravitational equation and then, to character, 
-theStringBuffer (global variable) to display into the screen. The value of h which enables the ring to successfully land on post has been found to be 
-55 units/sec.
-
+which is a keyboard callback handler and mouse_handler() which is a glut mouse callback handler. The program uses double buffered display mode.
+After drawing all objects using the display_func(), the coordinates for enabling press of 'GO' button and typing in the velocity box has been found using the
+mouse_handler(). Then, keyboard_handler() has been used to get the value of horizontal velocity typed in the obtained mouse coordinate position. The key
+strings typed has been stored in 'hstring' global string variable, converted to global integer 'h' to use in gravitational equation and then, to character,
+theStringBuffer (global variable) to display into the screen. The value of h which enables the ring to successfully land on post has been found to be
+from 51 units/sec to 57 units/sec.
 The view_setup function has been used to change the viewing model and to change the camera position using gluLookAt(). The global variable 'eyeY' has been
 changed to adjust the camera position.
-
 Other major global variables => x_pos and y_pos are the major float global variables used for making ring move following gravitational equation (implemented
-in calc_gravity_based_ring_pos()). It has also been used to check the win position (implemented in check_win_position()). The 'play_count' variable has been 
+in calc_gravity_based_ring_pos()). It has also been used to check the win position (implemented in check_win_position()). The 'play_count' variable has been
 used to keep track of the current game number required for changing the color of the ring, 'score_val' has been used to keep track of the score, 'isAnimate'
 has been used to stop animation after reaching the end position. The variables - win, near_win and not_win has been used to track the game status and print
-messaage in the screen; and the variables prev_score and prev_play_count has been used so that the score value and play count value will be the same inspite
-of the repetitive toggles.
+messaage in the screen.
 ************************************************************************************************/
 
 #define _CRT_SECURE_NO_WARNINGS	// used for sprintf function to change the integer typed in velocity box to char so as to display the text in the screen
-								
+
 #include <iostream>
 #include <string>
 #include <GL/glew.h>
@@ -49,10 +45,7 @@ static float t;				 // Time parameter.
 static int h;				 // Horizontal component of initial velocity.
 
 static int score_val;		 // Keeps score count
-static int prev_score;		 // Stores score befor toggle
-
 static int play_count;		 // Keeps track of current game number
-static int prev_play_count;	 // Stores previous game number
 
 static int win;				 // Keeps track of win, near win and not win status
 static int near_win;
@@ -81,7 +74,7 @@ char try_again_msg[] = "The RING didn't hit the POST. Please try again!!!";
 void init(void) {
 	/* This function sets the background color and initializes all the global variables.*/
 	glClearColor(0.0, 0.0, 0.0, 1.0);
-	play_count = 1;		
+	play_count = 1;
 	animationPeriod = 50;	// Set the time to display new frame to 50
 	delayPeriod = 1000;		// Time to start a new game
 	t = 0.0;
@@ -101,7 +94,6 @@ void init(void) {
 void writeBitmapString(void *font, char *string) {
 	/*
 	This function writes a bitmap text, one character at a time.
-
 	Parameters:
 	----------
 		font: void pointer
@@ -118,7 +110,6 @@ void writeBitmapString(void *font, char *string) {
 void writeStrokeString(void *font, char *string) {
 	/*
 	This function writes a stroke text, one character at a time.
-
 	Parameters:
 	----------
 		font: void pointer
@@ -135,7 +126,6 @@ void writeStrokeString(void *font, char *string) {
 void integerToString(char * destStr, int precision, int val) {
 	/*
 	This function convert a integer to char string.
-
 	Parameters:
 	----------
 		destStr: char pointer
@@ -152,7 +142,6 @@ void integerToString(char * destStr, int precision, int val) {
 void draw_single_post_stack(float x, float y, float z, double cube_size) {
 	/*
 	This function draws a single cube of a peg using glutWireCube.
-
 	Parameters:
 	----------
 		x: Float
@@ -174,7 +163,6 @@ void draw_single_post_stack(float x, float y, float z, double cube_size) {
 void draw_post(float x, float y, float z, double cube_size) {
 	/*
 	This function draws entire post using draw_single_post_stack() four times.
-
 	Parameters:
 	----------
 		x: Float
@@ -194,9 +182,8 @@ void draw_post(float x, float y, float z, double cube_size) {
 
 void draw_ring(float x, float y, float z, double width, double diameter) {
 	/*
-	This function draws a ring using glutWireTorus. The innerRadius and outerRadius are calculated using width and diameter. The color of the ring is 
+	This function draws a ring using glutWireTorus. The innerRadius and outerRadius are calculated using width and diameter. The color of the ring is
 	changed in each new game start. The variable play_count is used to keep trak of the game number.
-
 	Parameters:
 	----------
 		x: Float
@@ -213,16 +200,17 @@ void draw_ring(float x, float y, float z, double width, double diameter) {
 	int nsides = 25;
 	int rings = 25;
 	// calculate innerRadius and outerRadius
-	double innerRadius = width/2;
-	double outerRadius = innerRadius + diameter/2;
-	
+	double innerRadius = width / 2;
+	double outerRadius = innerRadius + diameter / 2;
+
+	// change color
 	if (play_count == 1) {
-		glColor3d(1.0, 1.0, 0.0);		
+		glColor3d(1.0, 1.0, 0.0);
 	}
 	else if (play_count == 2) {
-		glColor3d(1.0, 0.647, 0.0);		
+		glColor3d(1.0, 0.647, 0.0);
 	}
-	else if (play_count == 3){
+	else if (play_count == 3) {
 		glColor3d(0.0, 1.0, 1.0);
 	}
 
@@ -236,7 +224,6 @@ void draw_ring(float x, float y, float z, double width, double diameter) {
 void draw_velocity_box(float x, float y, float z) {
 	/*
 	This function draws the velocity box using GL_LINE_LOOP, convert the text inside the box to character and use glutStrokeCharacter to display it.
-
 	Parameters:
 	----------
 		x: Float
@@ -256,7 +243,7 @@ void draw_velocity_box(float x, float y, float z) {
 	glVertex3f(x, y + 25, z);
 	glEnd();
 
-	// convert the value of horizontal velocity to character and displays it in the canvas
+	// converts the value of horizontal velocity to character and displays it in the canvas
 	integerToString(theStringBuffer, 7, h);
 	glTranslatef(x + 8, y - 15, z);
 	glScaled(0.07, 0.07, 0);
@@ -271,7 +258,6 @@ void draw_velocity_box(float x, float y, float z) {
 void draw_go_box(float x, float y, float z) {
 	/*
 	This function draws the go box using GL_LINE_LOOP and writes 'GO' inside the box using stroke.
-
 	Parameters:
 	----------
 		x: Float
@@ -299,7 +285,6 @@ void display_score(float x, float y, float z) {
 	/*
 	This function writes 'SCORE' on the upper left corner, convertes the integer value of score to character and displays the score using
 	glutStrokeCharacter.
-
 	Parameters:
 	----------
 		x: Float
@@ -323,7 +308,6 @@ void display_score(float x, float y, float z) {
 void display_game_over(float x, float y, float z) {
 	/*
 	This function writes game over on the same position where a ring is drawn using glutBitmapCharacter.
-
 	Parameters:
 	----------
 		x: Float
@@ -343,7 +327,6 @@ void display_game_over(float x, float y, float z) {
 void print_game_instruction(float x, float y, float z) {
 	/*
 	This function displays game instruction at the top position of the screen using glutBitmapCharacter.
-
 	Parameters:
 	----------
 		x: Float
@@ -362,7 +345,6 @@ void print_game_instruction(float x, float y, float z) {
 void display_success_msg(float x, float y, float z) {
 	/*
 	This function displays success message at the bottom left of the screen using glutBitmapCharacter.
-
 	Parameters:
 	----------
 		x: Float
@@ -382,7 +364,6 @@ void display_success_msg(float x, float y, float z) {
 void display_encouragement_msg(float x, float y, float z) {
 	/*
 	This function displays encouragement message at the bottom left of the screen using glutBitmapCharacter.
-
 	Parameters:
 	----------
 		x: Float
@@ -402,7 +383,6 @@ void display_encouragement_msg(float x, float y, float z) {
 void display_tryagain_msg(float x, float y, float z) {
 	/*
 	This function displays try again message at the bottom left of the screen using glutBitmapCharacter.
-
 	Parameters:
 	----------
 		x: Float
@@ -422,7 +402,6 @@ void display_tryagain_msg(float x, float y, float z) {
 void check_win_position(float x, float y) {
 	/*
 	This function checks if the post coordinates lies inside the ring coordinates.
-
 	Parameters:
 	----------
 		x: Float
@@ -434,11 +413,11 @@ void check_win_position(float x, float y) {
 	near_win = 0;
 	not_win = 0;
 	// if the post is inside the ring
-	if (x >= 268 and x <= 275 and y == -470) {
+	if (x >= 255 and x <= 285 and y == -470) {
 		win = 1;
 	}
 	// if the post is near to the ring
-	else if (x >= 228 and x <= 310 and y == -470 and !win) {
+	else if (x >= 218 and x <= 325 and y == -470 and !win) {
 		near_win = 1;
 	}
 	// if the post is far away from the ring
@@ -469,7 +448,7 @@ void view_setup(void) {
 
 void timer_func(int value) {
 	/*
-	This function is a glut timer callback function which displays each new frame 55 ms from start to enable ring movement, 
+	This function is a glut timer callback function which displays each new frame 55 ms from start to enable ring movement,
 	displays new score value and different colored ring at the start position based on the play_count and score_val.
 	Parameters:
 	-----------
@@ -488,18 +467,13 @@ void timer_func(int value) {
 		}
 		break;
 	case 2:
-		// if there is a previous value of play_count and score_val before toggle, use that value else, compute new value.
-		if (prev_play_count > 0) {
-			play_count = prev_play_count;
-			if (win and score_val == prev_score) {
-				score_val += 25;
-			}
-		}
-		else {
+		// only increase play_count if ring s at the end position
+		if (y_pos == -470) {
 			play_count += 1;
-			if (win and prev_play_count <=0) {
-				score_val += 25;
-			}
+		}
+		// only increase score if it's the win position and value of score is less than 75
+		if (win and score_val < 75) {
+			score_val += 25;
 		}
 		t = 0.0;
 		glutPostRedisplay();
@@ -550,25 +524,11 @@ void keyboard_handler(unsigned char key, int x, int y) {
 	case 'V': case 'v':
 		// Toggle the view volume
 		view_state = abs(view_state - 1);
-		// use previous score and count value if it's available
-		prev_play_count = play_count;
-		prev_score = score_val;
 		view_setup();
 		glutPostRedisplay();
-		// Disable the change of score and play_count value on frame redisplay while toggling
-		if (prev_play_count < 4) {
-			prev_play_count += 1;
-			if (win and prev_score < score_val) {
-				// Set previous score to new score
-				prev_score += 25;
-			}
-		}
 		break;
 	case 'T': case 't':
 		// Toggle the camera position
-		// use previous score and count value if it's available
-		prev_play_count = play_count;
-		prev_score = score_val;
 		if (eyeY == 0) {
 			// change the value of eyeY for positioning the camera in upper direction
 			eyeY = -275;
@@ -579,20 +539,12 @@ void keyboard_handler(unsigned char key, int x, int y) {
 		}
 		view_setup();
 		glutPostRedisplay();
-		// Disable the change of score and play_count value on frame redisplay while toggling
-		if (prev_play_count < 4) {
-			prev_play_count += 1;
-			if (win and prev_score < score_val) {
-				// Set previous score to new score
-				prev_score += 25;
-			}
-		}
 		break;
 	default:
 		break;
 	}
 	if (view_state == 1) {
-	// detect if the mouse position is inside the velocity box
+		// detect if the mouse position is inside the velocity box
 		if (x >= 15 and x <= 87 and y >= 250 and y <= 274) {
 			display_typed_velocity(key);
 		}
@@ -615,7 +567,7 @@ void enable_go_button(void) {
 
 void enable_velocity_type(void) {
 	/*
-	This function enables the keyboard callback handler to activate typing within the velocity box. 
+	This function enables the keyboard callback handler to activate typing within the velocity box.
 	*/
 	h_string = "";
 	glutKeyboardFunc(keyboard_handler);
@@ -636,27 +588,27 @@ void mouse_handler(int button, int state, int x, int y) {
 		y: Integer
 			Stores the y-coordinate of the mouse pointer
 	*/
-		if (view_state == 1) {
-			if (x >= 95 and x <= 119 and y >= 250 and y <= 272 and h != 0) {
-				// enable ring movement
-				enable_go_button();
-			}
-
-			if (x >= 15 and x <= 87 and y >= 250 and y <= 274) {
-				// enable typing in the velocity box
-				enable_velocity_type();
-			}
+	if (view_state == 1) {
+		if (x >= 95 and x <= 119 and y >= 250 and y <= 272 and h != 0) {
+			// enable ring movement
+			enable_go_button();
 		}
-		else if (view_state == 0) {
-			if (x >= 185 and x <= 195 and y >= 262 and y <= 270 and h != 0) {
-				enable_go_button();
-			}
 
-			if (x >= 145 and x <= 161 and y >= 260 and y <= 272) {
-				enable_velocity_type();
-			}
+		if (x >= 15 and x <= 87 and y >= 250 and y <= 274) {
+			// enable typing in the velocity box
+			enable_velocity_type();
 		}
 	}
+	else if (view_state == 0) {
+		if (x >= 185 and x <= 195 and y >= 262 and y <= 270 and h != 0) {
+			enable_go_button();
+		}
+
+		if (x >= 145 and x <= 161 and y >= 260 and y <= 272) {
+			enable_velocity_type();
+		}
+	}
+}
 
 void calc_gravity_based_ring_pos(void) {
 	/*
@@ -670,7 +622,7 @@ void calc_gravity_based_ring_pos(void) {
 		x_pos = h * t;
 
 	};
-
+	
 	if (200 + y_pos <= -270) {
 		y_pos = -470;
 		isAnimate = 0;
@@ -679,10 +631,10 @@ void calc_gravity_based_ring_pos(void) {
 }
 void display_func(void) {
 	/*
-	This is a glut display callback handler which is called whenever a window needs to be displayed or redisplayed. It clears the 
-	canvas screen and reloads all the objects of the scene when called. This function also displays different messages on the canvas 
+	This is a glut display callback handler which is called whenever a window needs to be displayed or redisplayed. It clears the
+	canvas screen and reloads all the objects of the scene when called. This function also displays different messages on the canvas
 	based on the game status (win, near_win, not_win), enable ring movement, displays new ring after the game ends until game number
-	is 4 then, displays game over message. 
+	is 4 then, displays game over message.
 	*/
 	glLoadIdentity();
 	glClear(GL_COLOR_BUFFER_BIT);
