@@ -6,26 +6,27 @@ by 25 if the ring lands on the post, displaying message of success on a successf
 viewing the objects from above the post triggered by the press of 'T'.
 Apart from this, I have also displayed an extra message to encourage the player to try again on an unsuccessful ring toss.
 
-Software Architecture Statement: This program implements a ring toss game that allows the  users to enter the velocity for tossing a ring into the peg by registering
-four callback functions: display_func() which is a display callback handler, timer_func() which is a timer callback handler, keyboard_handler() which is a keyboard 
-callback handler and mouse_handler() which is a glut mouse callback handler. The program uses double buffered display mode. 
+Software Architecture Statement: This program implements a ring toss game that allows the  users to enter the velocity for tossing a ring into the peg by 
+registering four callback functions: display_func() which is a display callback handler, timer_func() which is a timer callback handler, keyboard_handler()
+which is a keyboard callback handler and mouse_handler() which is a glut mouse callback handler. The program uses double buffered display mode. 
 After drawing all objects using the display_func(), the coordinates for enabling press of 'GO' button and typing in the velocity box has been found using the 
-mouse_handler(). Then, keyboard_handler() has been used to get the value of horizontal velocity typed in the obtained mouse coordinate position. The key strings typed
-has been stored in 'hstring' global string variable, converted to global integer 'h' to use in gravitational equation and then, to character, theStringBuffer (global 
-variable) to display into the screen. The value of h which enables the ring to successfully land on post has been found to be 55 units/sec.
+mouse_handler(). Then, keyboard_handler() has been used to get the value of horizontal velocity typed in the obtained mouse coordinate position. The key strings
+typed has been stored in 'hstring' global string variable, converted to global integer 'h' to use in gravitational equation and then, to character, 
+theStringBuffer (global variable) to display into the screen. The value of h which enables the ring to successfully land on post has been found to be 55 units/sec.
 
-The view_setup function has been used to change the viewing model and to change the camera position using gluLookAt(). The global variable 'eyeY' has been changed to 
-adjust the camera position.
+The view_setup function has been used to change the viewing model and to change the camera position using gluLookAt(). The global variable 'eyeY' has been changed 
+to adjust the camera position.
 
 Other major global variables => x_pos and y_pos are the major float global variables used for making ring move following gravitational equation (implemented in 
-calc_gravity_based_ring_pos()). It has also been used to check the win position (implemented in check_win_position()). The 'play_count' variable has been used to keep 
-track of the current game number required for changing the color of the ring, 'score_val' has been used to keep track of the score, 'isAnimate' has been used to stop 
-animation after reaching the end position. The variables - win, near_win and not_win has been used to track the game status and print messaage in the screen; and the 
-variables prev_score and prev_play_count has been used so that the score value and play count value will be the same inspite of the repetitive toggles.
+calc_gravity_based_ring_pos()). It has also been used to check the win position (implemented in check_win_position()). The 'play_count' variable has been used to 
+keep track of the current game number required for changing the color of the ring, 'score_val' has been used to keep track of the score, 'isAnimate' has been
+used to stop animation after reaching the end position. The variables - win, near_win and not_win has been used to track the game status and print messaage in the
+screen; and the variables prev_score and prev_play_count has been used so that the score value and play count value will be the same inspite of the repetitive 
+toggles.
 ************************************************************************************************/
 
-#define _CRT_SECURE_NO_WARNINGS			// used for sprintf function to change the integer typed in velocity box to char so as to display
-										// stroke character in the screen
+#define _CRT_SECURE_NO_WARNINGS		// used for sprintf function to change the integer typed in velocity box to char so as to display the text in the screen
+								
 #include <iostream>
 #include <string>
 #include <GL/glew.h>
