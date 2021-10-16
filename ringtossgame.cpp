@@ -14,8 +14,8 @@ strings typed has been stored in 'hstring' global string variable, converted to 
 theStringBuffer (global variable) to display into the screen. The value of h which enables the ring to successfully land on post has been found to be
 from 51 units/sec to 57 units/sec.
 The view_setup function has been used to change the viewing model and to change the camera position using gluLookAt(). The global variable 'eyeY' has been
-changed to adjust the camera position.
-Other major global variables => x_pos and y_pos are the major float global variables used for making ring move following gravitational equation (implemented
+changed to adjust the camera position and view_state for toggling the view volume.
+Other major global variables => x_pos, t and y_pos are the major float global variables used for making ring move following gravitational equation (implemented
 in calc_gravity_based_ring_pos()). It has also been used to check the win position (implemented in check_win_position()). The 'play_count' variable has been
 used to keep track of the current game number required for changing the color of the ring, 'score_val' has been used to keep track of the score, 'isAnimate'
 has been used to stop animation after reaching the end position. The variables - win, near_win and not_win has been used to track the game status and print
@@ -618,11 +618,13 @@ void calc_gravity_based_ring_pos(void) {
 	float v = 10;
 	float g = -32;
 	y_pos = v * t + (g / 2)*t*t;
+	// makes ring fall straight down from y = -210
 	if (200 + y_pos > -210) {
 		x_pos = h * t;
 
 	};
 	
+	// clips the ring to y = -270 if the value of y_pos is more than -270
 	if (200 + y_pos <= -270) {
 		y_pos = -470;
 		isAnimate = 0;
